@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
+import CreateTask from './task/CreateTask';
+import TaskDetail from './task/TaskDetail';
 import Dashboard from './user/Dashboard';
 import Logout from './user/Logout';
 import SignIn from './user/SignIn';
 import SignUp from './user/SignUp';
-import CreateTask from './task/CreateTask';
-import TaskList from './task/TaskList';
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
         <Route path='/signout' exact={true} element={<Dashboard />} />
         <Route path='/logout' exact={true} element={<Logout />} />
         <Route path='/createTask' exact={true} element={<CreateTask />} />
-        <Route path='/taskList' exact={true} element={<TaskList />} />
+        <Route path='/taskDetail' exact={true} element={<TaskDetail />} />
       </Routes>
     </Router>
   );

@@ -13,7 +13,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSignin } from '../hooks/useLogin';
 
 const theme = createTheme();
@@ -26,13 +26,18 @@ export default function SignIn() {
     const [password, setPassword] = useState('');
     const [errMsg, setErrMsg] = useState('');
     const { signin, error, isLoading, loginData } = useSignin();
+    const user = JSON.parse(localStorage.getItem('user'));
 
     useEffect(() => {
-        setErrMsg('');
-    }, [username, password]);
+        if (user === null || user === undefined || user === '') {
+            setErrMsg('');
+        } else {
+            navigate('/dashboard');
+        }
+    }, []);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
         let loginCreds = {
             "username": username,
@@ -49,7 +54,7 @@ export default function SignIn() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
+            {(user === null || user === undefined || user === '') ? (<Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
                     sx={{
@@ -117,7 +122,7 @@ export default function SignIn() {
                         </Grid>
                     </Box>
                 </Box>
-            </Container>
+            </Container>) : (null)}
         </ThemeProvider>
     );
 }

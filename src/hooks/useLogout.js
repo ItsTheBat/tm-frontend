@@ -10,7 +10,7 @@ export const useLogout = () => {
     const { dispatch } = useAuthContext();
 
     const logout = async () => {
-        localStorage.removeItem('username');
+        localStorage.removeItem('user');
         dispatch({ type: 'LOGOUT' });
 
         await axios.post(
