@@ -1,12 +1,18 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Logout from '@mui/icons-material/Logout';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import Logout from '@mui/icons-material/Logout';
 import { Chip, FormLabel, IconButton, Tooltip } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -18,8 +24,10 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLogout } from '../hooks/useLogout';
 
+
 const mdTheme = createTheme();
 const TASKDETAIL_URL = '/api/task/getTaskDetail';
+const TASKDELETE_URL = '/api/task/deleteTask';
 
 export default function Task(props) {
     const { state } = useLocation();
@@ -27,6 +35,7 @@ export default function Task(props) {
     const user = JSON.parse(localStorage.getItem('user'));
     const isManager = user.roles[0] === ('ROLE_MANAGER');
     const [errMsg, setErrMsg] = useState('');
+    const [open, setOpen] = React.useState(false);
     const navigate = useNavigate();
     const { logout } = useLogout();
     const [taskData, setTaskData] = useState(null);
@@ -35,6 +44,43 @@ export default function Task(props) {
     const handleLogout = () => {
         logout();
     }
+
+    const handleDialogOk = async () => {
+        let taskData = {
+            "taskId": taskId,
+            "roles": user.roles
+        };
+        await axios.post(
+            TASKDELETE_URL,
+            JSON.stringify(taskData),
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            }
+        ).then((response) => {
+            if (response?.status === 200) {
+                localStorage.removeItem('taskId');
+                localStorage.setItem('isDeleteTask', JSON.stringify(true));
+                handleBack();
+            }
+        }).catch((err) => {
+            if (!err?.response) {
+                console.log('No Server Response. Please try after sometime.');
+            } else if (err.response?.status === 400) {
+                console.log('Task details not found.');
+            } else if (err.response?.status === 401) {
+                console.log('Unauthorized access.');
+            } else {
+                console.log('Task details not found.');
+            }
+        });
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     useEffect(() => {
         handleDetailView();
@@ -48,11 +94,11 @@ export default function Task(props) {
         //TODO :
     }
 
-    const handleDelete = () => {
-        //TODO :
+    const handleDelete = (event) => {
+        setOpen(true);
     }
 
-    const handleDetailView = async (e) => {
+    const handleDetailView = async (event) => {
         let taskData = {
             "taskId": taskId,
             "roles": user.roles
@@ -67,8 +113,7 @@ export default function Task(props) {
                 withCredentials: true,
             }
         ).then((response) => {
-            if (!response?.status === 200) {
-            } else {
+            if (response?.status === 200) {
                 setTaskPeriod(response?.data?.startDate + ' to ' + response?.data?.endDate);
                 setTaskData(response?.data);
             }
@@ -181,6 +226,7 @@ export default function Task(props) {
                                             <Grid item sx={{ display: 'flex', flexGrow: 1, flexDirection: 'row', padding: '0px 0px 0px 8px' }}>
                                                 <Chip label={taskData.taskId} variant="outlined" />
                                                 <Chip label={taskPeriod} variant="outlined" sx={{ margin: '0px 0px 0px 16px' }} />
+                                                <Chip label={taskData.status} variant="outlined" sx={{ margin: '0px 0px 0px 16px' }} />
                                             </Grid>
                                             <Grid item sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column', padding: '16px 0px 0px 8px' }}>
                                                 <Typography
@@ -208,8 +254,9 @@ export default function Task(props) {
                                                 > Attachments
                                                 </Typography>
                                                 <Paper variant="elevation" elevation={2} sx={{ minHeight: '100px' }}>
-                                                    {taskData.docs.length === 0 ? <p
-                                                        style={{ padding: '0px 16px' }}>
+                                                    {(taskData !== null && taskData !== undefined && taskData.docs !== null
+                                                        && taskData.docs !== undefined && taskData.docs.length === 0) ? <p
+                                                            style={{ padding: '0px 16px' }}>
                                                         No Attachments linked.</p> :
                                                         <span></span>
                                                     }
@@ -223,6 +270,26 @@ export default function Task(props) {
                     </Container>
                 </Box>
             </Box >
+
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {"Confirm Delete"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure want to delete the task?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} autoFocus color='error'>Cancel</Button>
+                    <Button onClick={handleDialogOk} color='info'> OK </Button>
+                </DialogActions>
+            </Dialog>
         </ThemeProvider >
     );
 

@@ -10,6 +10,7 @@ import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import Snackbar from '@mui/material/Snackbar';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -31,14 +32,20 @@ function DashboardContent() {
     const navigate = useNavigate();
     const { logout } = useLogout();
     const [tableData, setTableData] = useState([]);
+    const [open, setOpen] = React.useState(false);
     const [showView, setShowView] = useState(false);
     const user = JSON.parse(localStorage.getItem('user'));
+    const isDeleteTask = JSON.parse(localStorage.getItem('isDeleteTask')) === true ? true : false;
     var isManager = null;
     if (user === null || user === undefined || user === '') {
         isManager = false;
     } else {
         isManager = user.roles[0] === ('ROLE_MANAGER');
     }
+
+    const handleToastrClick = () => {
+        setOpen(true);
+    };
 
     const handleDetailView = async (event) => {
         event.preventDefault();
@@ -57,13 +64,17 @@ function DashboardContent() {
         if (user === null || user === undefined || user === '') {
             navigate('/');
         } else {
+            if (isDeleteTask) {
+                setOpen(true);
+                localStorage.setItem('isDeleteTask', JSON.stringify(false));
+            }
             handleLoad('');
         }
     }, []);
 
     function formTasks(responseData) {
         var tempArr = [];
-        const temp = createData('tempId', 'No Records', '', '', '');
+        const temp = createData('tempId', 'No Records', '', '', '', '');
         tempArr.push(temp);
 
         if (responseData !== null) {
@@ -71,7 +82,7 @@ function DashboardContent() {
                 var returnArr = [];
                 responseData.taskData.forEach(element => {
                     returnArr.push(createData(element.taskId, element.taskId, element.taskName,
-                        element.createDate, element.assignee));
+                        element.createDate, element.status, element.assignee));
                 });
                 return returnArr;
             } catch (err) {
@@ -82,8 +93,8 @@ function DashboardContent() {
         }
     }
 
-    function createData(id, taskId, taskName, createDate, assignee) {
-        return { id, taskId, taskName, createDate, assignee };
+    function createData(id, taskId, taskName, createDate, status, assignee) {
+        return { id, taskId, taskName, createDate, status, assignee };
     }
 
     const handleTaskSearch = async (event) => {
@@ -228,22 +239,24 @@ function DashboardContent() {
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell>Task ID</TableCell>
-                                                        <TableCell>Task Name</TableCell>
-                                                        <TableCell>Create Date</TableCell>
-                                                        <TableCell>Assignee</TableCell>
-                                                        <TableCell></TableCell>
+                                                        <TableCell width={200}>Task ID</TableCell>
+                                                        <TableCell width={350}>Task Name</TableCell>
+                                                        <TableCell width={200}>Create Date</TableCell>
+                                                        <TableCell width={150}>Status</TableCell>
+                                                        <TableCell width={150}>Assignee</TableCell>
+                                                        <TableCell width={50}></TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {
                                                         tableData.map((row) => (
                                                             <TableRow key={JSON.stringify(row)}>
-                                                                <TableCell>{row.taskId}</TableCell>
-                                                                <TableCell>{row.taskName}</TableCell>
-                                                                <TableCell>{row.createDate}</TableCell>
-                                                                <TableCell>{row.assignee}</TableCell>
-                                                                <TableCell align="right">
+                                                                <TableCell width={200}>{row.taskId}</TableCell>
+                                                                <TableCell width={350}>{row.taskName}</TableCell>
+                                                                <TableCell width={200}>{row.createDate}</TableCell>
+                                                                <TableCell width={150}>{row.status}</TableCell>
+                                                                <TableCell width={150}>{row.assignee}</TableCell>
+                                                                <TableCell align="right" width={50}>
                                                                     {showView ?
                                                                         <Tooltip title="View Task">
                                                                             <IconButton color="primary" id={row.taskId}
@@ -266,6 +279,12 @@ function DashboardContent() {
                     </Box>
                 </Box>
             ) : (null)}
+            <Snackbar
+                open={open}
+                autoHideDuration={3000}
+                onClose={handleToastrClick}
+                message="Task deleted successfully."
+            />
         </ThemeProvider >
 
     );
