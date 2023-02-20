@@ -30,8 +30,8 @@ export default function CreateTask() {
     const [alertType, setAlertType] = useState('error');
     const [showMsg, setShowMsg] = useState(false);
     const { createTask, error, isMessage } = useCreateTask();
-    const [startValue, setStartValue] = React.useState(dayjs('2023-02-01T12:00:00'));
-    const [endValue, setEndValue] = React.useState(dayjs('2023-02-01T12:00:00'));
+    const [startValue, setStartValue] = useState(dayjs('2023-02-01T12:00:00'));
+    const [endValue, setEndValue] = useState(dayjs('2023-02-01T12:00:00'));
     const user = JSON.parse(localStorage.getItem('user'));
     const navigate = useNavigate();
     const { logout } = useLogout();
@@ -56,9 +56,11 @@ export default function CreateTask() {
         const data = new FormData(event.currentTarget);
         event.preventDefault();
         let createData = {
+            taskId: '',
             taskName: data.get('taskName'),
             taskDescription: data.get('taskDescription'),
             assignee: data.get('assignee'),
+            status: '',
             startDate: startValue.$d,
             endDate: endValue.$d,
             attachments: [data.get('attachments')],

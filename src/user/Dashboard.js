@@ -44,7 +44,7 @@ function DashboardContent() {
     }
 
     const handleToastrClick = () => {
-        setOpen(true);
+        setOpen(false);
     };
 
     const handleDetailView = async (event) => {
